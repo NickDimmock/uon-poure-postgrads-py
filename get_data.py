@@ -6,9 +6,26 @@ from time import strptime
 
 def get(config):
 
+    # Set headers for CSV data:
+    # TODO: If we don't have to use the field names from the spreadsheet, sanitise these
+    csv_fieldnames=[
+        'rel_value',
+        'Student_ID',
+        'ResID',
+        'TITLE',
+        'FORENAMES',
+        'SURNAME',
+        'EMAIL',
+        'START_DATE',
+        'DIVISION CODE',
+        'DIVISION NAME',
+        'Course Code',
+        'Course Desc',
+        'Ft/PT'
+    ]
     # Read in the CSV data:
     with open(config["csv_source"], "r") as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, fieldnames = csv_fieldnames)
         data = list(reader)
 
     # Create starting data, including root UON info from config:
@@ -19,6 +36,8 @@ def get(config):
         "excluded": []
     }
 
+    # A list of our various complaints:
+    problems = []
     done = 0
 
     # Take the data line by line:
@@ -42,7 +61,7 @@ def get(config):
             continue
         
         if not d["START_DATE"]:
-           print(f"No start date for {d['ResID']}")
+           problems.append(f"No start date for {d['ResID']}")
            continue
 
         # We've probably got a student, so grab what we need:
@@ -58,5 +77,6 @@ def get(config):
             "startdate": startdate
         }
         
-        
+    with open(config["error_file"], "w", encoding="utf-8") as f:
+        f.write(json.dumps(problems, indent=4))
     return py_data

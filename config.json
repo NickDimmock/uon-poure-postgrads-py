@@ -6,6 +6,7 @@
     "users_xml": "out/users.xml",
     "email_lookup_json": "out/email_lookup.json",
     "org_list_json": "out/org_list.json",
+    "error_file": "out/errors.json",
     "org_namespaces": {
         "xmlns": "v1.organisation-sync.pure.atira.dk",
         "xmlns:v3": "v3.commons.pure.atira.dk" 
