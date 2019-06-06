@@ -21,9 +21,9 @@ def create(config, data):
         
         name = ET.SubElement(person, "name")
         first_name = ET.SubElement(name, "v3:firstname")
-        first_name.text = obj["firstname"]
+        first_name.text = obj["first_name"]
         last_name = ET.SubElement(name, "v3:lastname")
-        last_name.text = obj["lastname"]
+        last_name.text = obj["surname"]
 
         '''
         names = ET.SubElement(person, "names")

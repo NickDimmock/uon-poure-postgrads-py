@@ -7,21 +7,20 @@ from time import strptime
 def get(config):
 
     # Set headers for CSV data:
-    # TODO: If we don't have to use the field names from the spreadsheet, sanitise these
     csv_fieldnames=[
         'rel_value',
-        'Student_ID',
-        'ResID',
-        'TITLE',
-        'FORENAMES',
-        'SURNAME',
-        'EMAIL',
-        'START_DATE',
-        'DIVISION CODE',
-        'DIVISION NAME',
-        'Course Code',
-        'Course Desc',
-        'Ft/PT'
+        'student_id',
+        'res_id',
+        'title',
+        'forenames',
+        'surname',
+        'email',
+        'start_date',
+        'division_code',
+        'division_name',
+        'course_code',
+        'course_desc',
+        'ft_pt'
     ]
     # Read in the CSV data:
     with open(config["csv_source"], "r") as f:
@@ -38,42 +37,54 @@ def get(config):
 
     # A list of our various complaints:
     problems = []
-    done = 0
 
     # Take the data line by line:
     for d in data:
 
-        # Flag to determine whether or not to include a staff member:
-        process_staff = True
-
-        # Filter out staff based on alphanumeric ResID values (e.g. jsmith):
+        # Filter out staff based on alphanumeric res_id values (e.g. jsmith):
+        # Strip the res_id, as it sometimes has a leading space...
         staff_pattern=re.compile("\D")
-        if staff_pattern.search(d["ResID"]):
+        if staff_pattern.search(d["res_id"].strip()):
             # Pop them into the excluded list:
             py_data["excluded"].append (
                 {
-                    "resid": d["ResID"],
-                    "studentid": d["Student_ID"],
-                    "name": d["FORENAMES"] + " " + d["SURNAME"]
+                    "res_id": d["res_id"],
+                    "studentid": d["student_id"],
+                    "name": d["forenames"] + " " + d["surname"]
                 }
             )
+            problems.append({
+                "res_id": d['res_id'],
+                "studentid": d["student_id"],
+                "forenames": d["forenames"],
+                "surname": d["surname"],
+                "email": d["email"],
+                "problem": "res_id doesn't match ARMS pattern - may be staff"
+            })
             # Bail out:
             continue
         
-        if not d["START_DATE"]:
-           problems.append(f"No start date for {d['ResID']}")
+        if not d["start_date"]:
+           problems.append({
+                "res_id": d['res_id'],
+                "studentid": d["student_id"],
+                "forenames": d["forenames"],
+                "surname": d["surname"],
+                "email": d["email"],
+                "problem": "No start date provided"
+           })
            continue
 
         # We've probably got a student, so grab what we need:
         # Flip the date:
-        startdate_obj = datetime.datetime.strptime(d["START_DATE"], "%d/%m/%Y")
+        startdate_obj = datetime.datetime.strptime(d["start_date"], "%d/%m/%Y")
         startdate = startdate_obj.strftime("%Y-%m-%d")
-        py_data["persons"][d["ResID"]] = {
-            "title": d["TITLE"],
-            "firstname": d["FORENAMES"],
-            "lastname": d["SURNAME"],
-            "email": d["EMAIL"],
-            "description": d["Course Desc"],
+        py_data["persons"][d["res_id"].strip()] = {
+            "title": d["title"],
+            "first_name": d["forenames"],
+            "surname": d["surname"],
+            "email": d["email"],
+            "description": d["course_desc"],
             "startdate": startdate
         }
         
